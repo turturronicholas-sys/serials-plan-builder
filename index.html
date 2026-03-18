@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SERIALS — Personal Fundraiser Plan Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Epilogue:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1612;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --accent: #c94a1f;
+    --accent-soft: #f0d5cb;
+    --accent-mid: #e06030;
+    --muted: #7a6e62;
+    --border: #d4cdc0;
+    --white: #fdfaf5;
+    --green: #2d6a4f;
+    --green-soft: #d8ead2;
+    --blue: #3b6fd4;
+    --blue-soft: #e8f0fe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: 'Epilogue', sans-serif; min-height: 100vh; }
+  .page-header {
+    background: var(--ink); color: var(--paper);
+    padding: 2.5rem 3rem; position: relative; overflow: hidden;
+  }
+  .page-header::before {
+    content: 'SERIALS'; position: absolute; right: -20px; top: -20px;
+    font-family: 'DM Serif Display', serif; font-size: 140px;
+    color: rgba(255,255,255,0.04); pointer-events: none; line-height: 1;
+  }
+  .header-label {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.15em; color: var(--accent-mid);
+    text-transform: uppercase; margin-bottom: 0.5rem;
+  }
+  .page-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 5vw, 48px); font-weight: 400;
+    line-height: 1.1; margin-bottom: 0.5rem;
+  }
+  .page-header p { color: rgba(245,240,232,0.6); font-size: 14px; max-width: 480px; }
+  .container { max-width: 820px; margin: 0 auto; padding: 2.5rem 2rem; }
+  .steps-nav {
+    display: flex; margin-bottom: 2.5rem;
+    border: 1px solid var(--border); border-radius: 4px;
+    overflow: hidden; background: var(--white);
+  }
+  .step-tab {
+    flex: 1; padding: 0.75rem 0.5rem; text-align: center;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.08em; color: var(--muted);
+    border-right: 1px solid var(--border); transition: all 0.2s;
+  }
+  .step-tab:last-child { border-right: none; }
+  .step-tab.active { background: var(--accent); color: white; font-weight: 500; }
+  .step-tab.done { background: var(--ink); color: var(--paper); }
+  .section { display: none; }
+  .section.active { display: block; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif; font-size: 28px;
+    font-weight: 400; margin-bottom: 0.35rem;
+  }
+  .section-sub { color: var(--muted); font-size: 14px; margin-bottom: 2rem; line-height: 1.6; }
+  .field-group { margin-bottom: 1.75rem; }
+  .field-label { display: block; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
+  .field-hint { font-size: 12px; color: var(--muted); margin-bottom: 0.6rem; line-height: 1.5; }
+  input[type="text"] {
+    width: 100%; padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border); border-radius: 3px;
+    background: var(--white); font-family: 'Epilogue', sans-serif;
+    font-size: 14px; color: var(--ink); transition: border-color 0.15s;
+  }
+  input[type="text"]:focus { outline: none; border-color: var(--accent); }
+  .radio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .radio-card input { display: none; }
+  .radio-card label {
+    display: block; padding: 0.75rem 1rem;
+    border: 1px solid var(--border); border-radius: 3px;
+    background: var(--white); cursor: pointer; font-size: 13px;
+    font-weight: 500; color: var(--muted); transition: all 0.15s;
+    text-align: center; line-height: 1.4;
+  }
+  .radio-card input:checked + label { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .radio-card label:hover { border-color: var(--accent-mid); color: var(--ink); }
+  .check-grid { display: flex; flex-direction: column; gap: 8px; }
+  .check-card input { display: none; }
+  .check-card label {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 0.75rem 1rem; border: 1px solid var(--border);
+    border-radius: 3px; background: var(--white); cursor: pointer;
+    font-size: 13px; color: var(--muted); transition: all 0.15s; line-height: 1.5;
+  }
+  .check-card label::before {
+    content: ''; width: 16px; height: 16px; min-width: 16px;
+    border: 1px solid var(--border); border-radius: 2px;
+    margin-top: 1px; transition: all 0.15s; background: var(--paper);
+  }
+  .check-card input:checked + label { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+  .check-card input:checked + label::before {
+    background: var(--accent); border-color: var(--accent);
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='8' viewBox='0 0 10 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 3.5L4 6.5L9 1' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: center;
+  }
+  input[type="range"] {
+    width: 100%; height: 4px; appearance: none;
+    background: var(--border); border-radius: 2px; cursor: pointer; margin: 0.5rem 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); cursor: pointer;
+    border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .range-labels {
+    display: flex; justify-content: space-between;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--muted); margin-top: 4px;
+  }
+  .range-value {
+    font-family: 'DM Mono', monospace; font-size: 22px;
+    font-weight: 500; color: var(--accent); margin-bottom: 0.5rem; display: block;
+  }
+  .btn-row { display: flex; gap: 12px; margin-top: 2rem; align-items: center; }
+  .btn {
+    padding: 0.75rem 1.75rem; border-radius: 3px;
+    font-family: 'Epilogue', sans-serif; font-size: 14px;
+    font-weight: 700; cursor: pointer; transition: all 0.15s;
+    border: none; letter-spacing: 0.02em;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-mid); }
+  .btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-secondary:hover { color: var(--ink); border-color: var(--ink); }
+  .btn-print { background: var(--ink); color: var(--paper); margin-left: auto; }
+  .btn-print:hover { background: #2d2720; }
+
+  /* PLAN HEADER */
+  .plan-header {
+    background: var(--ink); color: var(--paper);
+    padding: 2rem 2.5rem; border-radius: 4px;
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+  }
+  .plan-header::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px; background: var(--accent);
+  }
+  .plan-header-meta {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.12em; color: var(--accent-mid);
+    text-transform: uppercase; margin-bottom: 0.5rem;
+  }
+  .plan-header h2 {
+    font-family: 'DM Serif Display', serif; font-size: 32px;
+    font-weight: 400; margin-bottom: 1.25rem;
+  }
+  .plan-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; max-width: 320px; }
+  .plan-stat { background: rgba(255,255,255,0.07); border-radius: 3px; padding: 0.75rem 1rem; }
+  .plan-stat-label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 0.1em; color: rgba(245,240,232,0.5);
+    text-transform: uppercase; margin-bottom: 0.3rem;
+  }
+  .plan-stat-value { font-size: 18px; font-weight: 700; color: var(--paper); }
+
+  /* CHANNEL SUMMARY */
+  .channel-summary {
+    margin-bottom: 2rem; padding: 1.25rem 1.5rem;
+    background: var(--cream); border-radius: 3px;
+    border-left: 3px solid var(--accent);
+  }
+  .channel-summary-title {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.75rem;
+  }
+  .channel-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 4px 12px; border-radius: 2px; font-size: 12px;
+    font-weight: 500; background: var(--white);
+    border: 1px solid var(--border); color: var(--ink);
+  }
+  .chip.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* TIMELINE */
+  .timeline-wrap {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2rem 1.5rem 2rem 2rem;
+  }
+  .timeline-hint {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--muted); letter-spacing: 0.08em;
+    margin-bottom: 1.75rem; text-transform: uppercase;
+  }
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 6px; top: 10px; bottom: 10px;
+    width: 1px; background: var(--border);
+  }
+  .tl-entry { position: relative; margin-bottom: 2px; }
+  .tl-dot-wrap {
+    position: absolute; left: -28px; top: 12px;
+    width: 13px; height: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tl-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--border); border: 2px solid var(--white);
+    transition: all 0.2s; position: relative; z-index: 1;
+  }
+  .tl-dot.accent { background: var(--accent); }
+  .tl-dot.blue { background: var(--blue); }
+  .tl-dot.green { background: var(--green); }
+  .tl-dot.milestone { background: var(--accent); width: 13px; height: 13px; }
+  .tl-header {
+    padding: 10px 14px 10px 6px;
+    display: flex; align-items: center; gap: 10px;
+    border-radius: 3px; transition: background 0.15s;
+    cursor: pointer; user-select: none;
+  }
+  .tl-entry:hover .tl-header { background: var(--cream); }
+  .tl-entry.open .tl-header { background: var(--cream); }
+  .tl-date {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--muted); white-space: nowrap;
+    min-width: 116px; flex-shrink: 0;
+  }
+  .tl-title { font-size: 13.5px; font-weight: 700; color: var(--ink); flex: 1; }
+  .tl-badge {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    padding: 2px 8px; border-radius: 2px;
+    background: var(--accent); color: white;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .tl-badge.green { background: var(--green); }
+  .tl-badge.blue { background: var(--blue); }
+  .tl-toggle {
+    font-size: 11px; color: var(--muted); flex-shrink: 0;
+    transition: transform 0.2s; font-family: 'DM Mono', monospace;
+  }
+  .tl-entry.open .tl-toggle { transform: rotate(180deg); }
+  .tl-body { display: none; padding: 0 0 10px 6px; }
+  .tl-entry.open .tl-body { display: block; animation: fadeUp 0.2s ease; }
+  .tl-task-list {
+    list-style: none; display: flex; flex-direction: column; gap: 7px;
+    padding: 0.85rem 1rem; background: var(--cream); border-radius: 3px;
+    border-left: 2px solid var(--accent);
+  }
+  .tl-task {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 13px; line-height: 1.55; color: var(--ink);
+  }
+  .tl-task-dot {
+    width: 5px; height: 5px; min-width: 5px; border-radius: 50%;
+    background: var(--accent); margin-top: 6px;
+  }
+  .tl-task-dot.blue { background: var(--blue); }
+  .tl-task-dot.green { background: var(--green); }
+  .tl-task strong { color: var(--accent); }
+  .tl-task strong.blue { color: var(--blue); }
+  .tl-task strong.green { color: var(--green); }
+
+  @media print {
+    .steps-nav, .btn-row, .no-print { display: none !important; }
+    body { background: white; }
+    .plan-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tl-body { display: block !important; }
+    .tl-toggle { display: none; }
+  }
+  @media (max-width: 600px) {
+    .container { padding: 1.5rem 1rem; }
+    .page-header { padding: 2rem 1.5rem; }
+    .plan-stats { grid-template-columns: 1fr; }
+    .radio-grid { grid-template-columns: 1fr 1fr; }
+    .tl-date { min-width: 80px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-label">Fundraiser Kickoff — KCBC March 28</div>
+  <h1>Personal Plan<br><em>Builder</em></h1>
+  <p>Answer a few questions about your network. We'll build your week-by-week fundraising timeline.</p>
+</div>
+
+<div class="container">
+  <div class="steps-nav" id="steps-nav">
+    <div class="step-tab active" id="tab-1">01 Profile</div>
+    <div class="step-tab" id="tab-2">02 Network</div>
+    <div class="step-tab" id="tab-3">03 Channels</div>
+    <div class="step-tab" id="tab-4">04 Your Plan</div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="section active" id="section-1">
+    <div class="section-title">Your Profile</div>
+    <p class="section-sub">Start with the basics.</p>
+    <div class="field-group">
+      <label class="field-label">Your name</label>
+      <input type="text" id="raiser-name" placeholder="e.g. Jamie Chen">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Your personal fundraising goal</label>
+      <p class="field-hint">The org target is $600 per raiser. You can set more based on your situation.</p>
+      <span class="range-value" id="goal-display">$600</span>
+      <input type="range" id="goal-range" min="600" max="1500" step="50" value="600"
+        oninput="document.getElementById('goal-display').textContent='$'+this.value">
+      <div class="range-labels"><span>$600</span><span>$1,050</span><span>$1,500</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goTo(2)">Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="section" id="section-2">
+    <div class="section-title">Your Network</div>
+    <p class="section-sub">Be honest — this is just for your plan, not a commitment.</p>
+    <div class="field-group">
+      <label class="field-label">How many close personal contacts (friends, family) could you realistically ask?</label>
+      <p class="field-hint">People who would give because they care about you personally.</p>
+      <div class="radio-grid">
+        <div class="radio-card"><input type="radio" name="personal" id="p1" value="5"><label for="p1">1–5</label></div>
+        <div class="radio-card"><input type="radio" name="personal" id="p2" value="12" checked><label for="p2">6–15</label></div>
+        <div class="radio-card"><input type="radio" name="personal" id="p3" value="25"><label for="p3">16–30</label></div>
+        <div class="radio-card"><input type="radio" name="personal" id="p4" value="40"><label for="p4">30+</label></div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">How active is your personal social media presence?</label>
+      <div class="radio-grid">
+        <div class="radio-card"><input type="radio" name="social" id="s1" value="none"><label for="s1">Not active</label></div>
+        <div class="radio-card"><input type="radio" name="social" id="s2" value="low"><label for="s2">Some (&lt;500)</label></div>
+        <div class="radio-card"><input type="radio" name="social" id="s3" value="med" checked><label for="s3">Moderate (500–2k)</label></div>
+        <div class="radio-card"><input type="radio" name="social" id="s4" value="high"><label for="s4">Large (2k+)</label></div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Are you comfortable making phone calls or sending personal texts to ask for donations?</label>
+      <div class="radio-grid">
+        <div class="radio-card"><input type="radio" name="calls" id="c1" value="no"><label for="c1">Not really</label></div>
+        <div class="radio-card"><input type="radio" name="calls" id="c2" value="some" checked><label for="c2">Close contacts only</label></div>
+        <div class="radio-card"><input type="radio" name="calls" id="c3" value="yes"><label for="c3">Yes, comfortable</label></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goTo(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="section" id="section-3">
+    <div class="section-title">Your Channels</div>
+    <p class="section-sub">Select everything that applies.</p>
+    <div class="field-group">
+      <label class="field-label">Which outreach methods are you willing to use?</label>
+      <div class="check-grid">
+        <div class="check-card"><input type="checkbox" id="ch1" value="email" checked><label for="ch1">Personal email outreach</label></div>
+        <div class="check-card"><input type="checkbox" id="ch2" value="social" checked><label for="ch2">Social media posts (Instagram, Facebook, LinkedIn)</label></div>
+        <div class="check-card"><input type="checkbox" id="ch3" value="sms"><label for="ch3">SMS / text messages</label></div>
+        <div class="check-card"><input type="checkbox" id="ch4" value="calls"><label for="ch4">Phone calls</label></div>
+        <div class="check-card"><input type="checkbox" id="ch5" value="buytile" checked><label for="ch5">Sharing the Buy a Tile fundraiser tool</label></div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Do you have anyone in your network who might share your post with their own large following?</label>
+      <div class="radio-grid">
+        <div class="radio-card"><input type="radio" name="amplifier" id="a1" value="no" checked><label for="a1">Not that I know of</label></div>
+        <div class="radio-card"><input type="radio" name="amplifier" id="a2" value="maybe"><label for="a2">Maybe 1–2 people</label></div>
+        <div class="radio-card"><input type="radio" name="amplifier" id="a3" value="yes"><label for="a3">Yes, definitely</label></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+      <button class="btn btn-primary" onclick="buildPlan()">Build My Plan →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="section" id="section-4">
+    <div id="plan-output"></div>
+    <div class="btn-row no-print">
+      <button class="btn btn-secondary" onclick="goTo(1)">← Start Over</button>
+      <button class="btn btn-print" onclick="window.print()">Print / Save PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function goTo(n) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.step-tab').forEach((t, i) => {
+      t.classList.remove('active','done');
+      if (i+1 < n) t.classList.add('done');
+      if (i+1 === n) t.classList.add('active');
+    });
+    document.getElementById('section-'+n).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function getVal(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : null;
+  }
+
+  function getChecked(id) { return document.getElementById(id).checked; }
+
+  function toggleEntry(el) { el.classList.toggle('open'); }
+
+  function buildPlan() {
+    goTo(4);
+    const name = document.getElementById('raiser-name').value || 'Your';
+    const goal = parseInt(document.getElementById('goal-range').value);
+    const personalCount = parseInt(getVal('personal') || '12');
+    const social = getVal('social') || 'med';
+    const calls = getVal('calls') || 'some';
+    const amplifier = getVal('amplifier') || 'no';
+    const useEmail = getChecked('ch1');
+    const useSocial = getChecked('ch2');
+    const useSMS = getChecked('ch3');
+    const useCalls = getChecked('ch4');
+    const useTile = getChecked('ch5');
+
+    const primaryChannels = [];
+    const supportChannels = [];
+    if (useEmail) primaryChannels.push('Personal Email');
+    if (useSocial && social !== 'none') primaryChannels.push('Social Media');
+    if ((useCalls || useSMS) && calls !== 'no') primaryChannels.push('Phone / SMS');
+    if (useTile) supportChannels.push('Buy a Tile');
+    if (amplifier !== 'no') supportChannels.push('Amplifier Outreach');
+
+    const entries = [
+      {
+        date: 'Mar 28',
+        title: 'Kickoff — build your list',
+        dotClass: 'accent', badge: 'Tonight', badgeClass: '',
+        tasks: [
+          {dot:'',label:'Script',text:'Run the Gmail extraction script with Nick. Build your contact spreadsheet before you leave tonight.'},
+          {dot:'',label:'Segment',text:`Sort your ${personalCount} personal contacts into three buckets: donate, share, or other ask.`},
+          useEmail?{dot:'',label:'Draft',text:'Choose Template 1A or 1B for your closest contacts. Personalize the opener tonight or tomorrow.'}:null,
+          {dot:'',label:'Schedule',text:'Block 30 minutes this week for your first send — aim to have it out before April 4.'},
+        ].filter(Boolean)
+      },
+      {
+        date: 'Mar 29 – Apr 3',
+        title: 'First outreach wave',
+        dotClass: 'accent', badge: null, badgeClass: '',
+        tasks: [
+          useEmail?{dot:'',label:'Send',text:`Email your ${Math.min(personalCount,10)} warmest contacts using Template 1A or 1B. Personalize every opener — no copy-paste blasts.`}:null,
+          (useSMS||useCalls)&&calls!=='no'?{dot:'',label:'Call/Text',text:'Identify 3–5 closest contacts for a personal call or text. Short, warm, link at the end.'}:null,
+          useSocial?{dot:'',label:'Draft post',text:"Write your first personal social post but don't publish yet. Save it for April 4 when the campaign goes public."}:null,
+        ].filter(Boolean)
+      },
+      {
+        date: 'Apr 4–5',
+        title: 'Performance weekend — campaign goes live',
+        dotClass: 'blue', badge: 'Launch', badgeClass: 'blue',
+        tasks: [
+          useSocial?{dot:'blue',label:'Post',text:'Publish your personal social post. Tag @serialsnyc and @thetanknyc. Use the link sticker in Stories with the GoFundMe URL.'}:null,
+          useTile?{dot:'blue',label:'Share tile',text:'Drop the Buy a Tile link in your Story with a personal caption. Works best as a direct DM to people you think will act.'}:null,
+          amplifier!=='no'?{dot:'blue',label:'DM',text:'Send a personal DM to any contacts with significant reach. One DM asking for a share is worth ten public posts.'}:null,
+          {dot:'blue',label:'Attend',text:'Be at the show. Capture content, share in real time, let your network see you there.'},
+        ].filter(Boolean)
+      },
+      {
+        date: 'Apr 6',
+        title: 'Winners announced — post-show push',
+        dotClass: 'accent', badge: null, badgeClass: '',
+        tasks: [
+          useSocial?{dot:'',label:'Post',text:'Share the winners announcement. Ride the energy — add a caption connecting the excitement to the fundraiser.'}:null,
+          useEmail?{dot:'',label:'Follow up',text:"Anyone who opened but didn't donate gets a short warm follow-up. One line: \"Just checking in — did you get a chance to look at this?\""}:null,
+        ].filter(Boolean)
+      },
+      {
+        date: 'Apr 7–18',
+        title: 'Second ring outreach',
+        dotClass: 'accent', badge: null, badgeClass: '',
+        tasks: [
+          {dot:'',label:'Expand',text:'Send to your next tier — colleagues and professional contacts. Use Template 3A or 3B.'},
+          useSocial?{dot:'',label:'Second post',text:'A new social post with a personal story about what SERIALS means to you. Different angle from the first.'}:null,
+          (useCalls||useSMS)&&calls!=='no'?{dot:'',label:'Follow up calls',text:"Circle back to anyone who said \"I'll look into it\" but hasn't acted yet. Keep it brief."}:null,
+        ].filter(Boolean)
+      },
+      {
+        date: 'Apr 19',
+        title: '25% milestone — $5,000',
+        dotClass: 'milestone', badge: '25% — $5,000', badgeClass: '',
+        tasks: [
+          {dot:'',label:'Share',text:'Post the 25% milestone graphic. Add your own caption — personal and energized.'},
+          {dot:'',label:'Matching',text:"Lean into the matching donor angle now: \"every dollar you give is doubled right now.\" Confirm exact language with Michael."},
+          useSocial?{dot:'',label:'Dollar gap',text:'Use the dollar gap post to show how close we are to 50%. Specific numbers convert better than vague ones.'}:null,
+        ].filter(Boolean)
+      },
+      {
+        date: 'Apr 26',
+        title: '50% milestone — $10,000',
+        dotClass: 'milestone', badge: '50% — $10,000', badgeClass: '',
+        tasks: [
+          {dot:'',label:'Re-engage',text:"Go back through your list. Anyone who hasn't responded to a first message gets a shorter second ask."},
+          useEmail?{dot:'',label:'Audience ask',text:'Reach out to any contacts who have attended SERIALS before. Use Template 2 — it leans on the shared experience.'}:null,
+          {dot:'',label:'Check in',text:'Report progress to the group. Where are you vs. your personal goal?'},
+        ].filter(Boolean)
+      },
+      {
+        date: 'May 1–16',
+        title: 'Sustained push',
+        dotClass: 'accent', badge: null, badgeClass: '',
+        tasks: [
+          useSocial?{dot:'',label:'Third post',text:'"We have X weeks left and Y to go." Use the dollar gap graphic.'}:null,
+          useEmail?{dot:'',label:'Second follow-up',text:"Re-contact anyone who engaged but didn't give. Shorter than the first ask."}:null,
+          {dot:'',label:'Flag',text:"If you're seeing slower responses, flag to the team before we fall behind the 75% target."},
+        ].filter(Boolean)
+      },
+      {
+        date: 'May 17',
+        title: '75% milestone — $15,000',
+        dotClass: 'milestone', badge: '75% — $15,000', badgeClass: '',
+        tasks: [
+          {dot:'',label:'Share',text:"Post the 75% graphic. We're in the home stretch — urgent and celebratory."},
+          useSocial?{dot:'',label:'Dollar gap',text:'"$5,000 to go" is a number that feels conquerable. Lean into it.'}:null,
+          useEmail?{dot:'',label:'Final ask prep',text:'Draft your final email now so it\'s ready to go in the last week.'}:null,
+        ].filter(Boolean)
+      },
+      {
+        date: 'Jun 1',
+        title: 'Final push begins',
+        dotClass: 'green', badge: 'Final week', badgeClass: 'green',
+        tasks: [
+          {dot:'green',label:'Countdown',text:'Share countdown posts as they go live. Daily urgency in the final week moves people off the fence.'},
+          useSocial?{dot:'green',label:'Final post',text:"Your last social push. Lead with emotion — what does it mean to you that we hit the goal?"}:null,
+          useEmail?{dot:'green',label:'Final email',text:"\"This is my last ask — we're close and I'd love your help getting us there.\""}:null,
+          (useCalls||useSMS)?{dot:'green',label:'Call/text',text:"Final reach out to anyone sitting on it. \"We're $X away — today is the day.\""}:null,
+        ].filter(Boolean)
+      },
+      {
+        date: 'Jun 4–6',
+        title: 'Performance weekend — campaign closes',
+        dotClass: 'green', badge: '100% — $20,000', badgeClass: 'green',
+        tasks: [
+          {dot:'green',label:'Attend',text:'Performance weekend. You did the work. Be there.'},
+          {dot:'green',label:'Share live',text:'Post from the show in real time. The GoFundMe closes June 6 — any last-minute shares could push us over.'},
+          {dot:'green',label:'Celebrate',text:'Campaign closes. Hard deadline, no extensions. Whatever we raised, we raised together.'},
+        ].filter(Boolean)
+      },
+    ];
+
+    const entriesHTML = entries.map(e => {
+      const tasksHTML = e.tasks.map(t => `
+        <li class="tl-task">
+          <span class="tl-task-dot ${t.dot}"></span>
+          <span><strong class="${t.dot}">${t.label}:</strong> ${t.text}</span>
+        </li>`).join('');
+      return `
+        <div class="tl-entry" onclick="toggleEntry(this)">
+          <div class="tl-dot-wrap"><div class="tl-dot ${e.dotClass}"></div></div>
+          <div class="tl-header">
+            <span class="tl-date">${e.date}</span>
+            <span class="tl-title">${e.title}</span>
+            ${e.badge?`<span class="tl-badge ${e.badgeClass}">${e.badge}</span>`:''}
+            <span class="tl-toggle">▾</span>
+          </div>
+          <div class="tl-body"><ul class="tl-task-list">${tasksHTML}</ul></div>
+        </div>`;
+    }).join('');
+
+    const channelChips = [
+      ...primaryChannels.map(c=>`<span class="chip primary">${c}</span>`),
+      ...supportChannels.map(c=>`<span class="chip">${c}</span>`)
+    ].join('');
+
+    document.getElementById('plan-output').innerHTML = `
+      <div class="plan-header">
+        <div class="plan-header-meta">Personal Fundraiser Plan — SERIALS 2026</div>
+        <h2>${name}'s Plan</h2>
+        <div class="plan-stats">
+          <div class="plan-stat">
+            <div class="plan-stat-label">Personal Goal</div>
+            <div class="plan-stat-value">$${goal.toLocaleString()}</div>
+          </div>
+          <div class="plan-stat">
+            <div class="plan-stat-label">Campaign Closes</div>
+            <div class="plan-stat-value">June 6</div>
+          </div>
+        </div>
+      </div>
+      <div class="channel-summary">
+        <div class="channel-summary-title">Your primary channels</div>
+        <div class="channel-chips">${channelChips}</div>
+      </div>
+      <div class="timeline-wrap">
+        <div class="timeline-hint">Click any date to expand actions</div>
+        <div class="timeline">${entriesHTML}</div>
+      </div>`;
+  }
+</script>
+</body>
+</html>
